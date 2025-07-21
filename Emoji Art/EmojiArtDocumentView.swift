@@ -22,8 +22,8 @@ struct EmojiArtDocumentView: View {
 struct ScrollingEmojis: View {
     let emojis: [String] // потому что Text принимает  String
     
-    init(emojis: [String]) {
-        self.emojis = emojis
+    init(emojis: String) {
+        self.emojis = emojis.uniqued
     }
     
     var body: some View {
