@@ -11,10 +11,15 @@ struct EmojiArtDocumentView: View {
     
     private let emojis = "👻🍎😃🤪☹️🤯🐶🐭🦁🐵🦆🐝🐢🐄🐖🌲🌴🌵🍄🌝🌍🌈🔥🌧️🌨️⛳🛥🚗🚙🚲🚲🏍🛺🛵✈️🚀🚁🏡🤺🏰❤️💤🐎"
     
+    private let paletteEmojiSize: CGFloat = 40
+    
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             Color.yellow
-            ScrollingEmojis()
+            ScrollingEmojis(emojis)
+                .font(.system(size: paletteEmojiSize))
+                .padding(.horizontal)
+                .scrollIndicators(.hidden)
         }
     }
 }
@@ -22,8 +27,9 @@ struct EmojiArtDocumentView: View {
 struct ScrollingEmojis: View {
     let emojis: [String] // потому что Text принимает  String
     
-    init(emojis: String) {
-        self.emojis = emojis.uniqued
+    init(_ emojis: String) {
+//        self.emojis = emojis.uniqued.map { String($0) }
+        self.emojis = emojis.uniqued.map(String.init) // .init конструирующая функция передаю функцию которая принимает Character (или другое) и возвращает String
     }
     
     var body: some View {
