@@ -30,3 +30,9 @@ class EmojiArtDocument: ObservableObject {
         emojiArt.addEmoji(emoji, at: position, size: Int(size))
     }
 }
+
+extension EmojiArt.Emoji { // вынесли из View во  View Model потому что это его работа помогать View и упрощать жизнь
+    var font: Font {
+        Font.system(size: CGFloat(size))
+    }
+}
