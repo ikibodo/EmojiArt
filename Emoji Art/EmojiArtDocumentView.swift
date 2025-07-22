@@ -16,7 +16,7 @@ struct EmojiArtDocumentView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            docementBody
+            documentBody
             ScrollingEmojis(emojis)
                 .font(.system(size: paletteEmojiSize))
                 .padding(.horizontal)
@@ -24,7 +24,7 @@ struct EmojiArtDocumentView: View {
         }
     }
     
-    private var docementBody: some View {
+    private var documentBody: some View {
         ZStack {
             Color.white
             // image goes here
