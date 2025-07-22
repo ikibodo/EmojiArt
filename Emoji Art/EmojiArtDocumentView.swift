@@ -25,13 +25,15 @@ struct EmojiArtDocumentView: View {
     }
     
     private var documentBody: some View {
-        ZStack {
-            Color.white
-            // image goes here
-            ForEach(document.emojis) { emoji in
-                Text(emoji.string)
-                    .font(emoji.font)
-                    .position(emoji.position)
+        GeometryReader { geometry in // считывает систему координат
+            ZStack {
+                Color.white
+                // image goes here
+                ForEach(document.emojis) { emoji in
+                    Text(emoji.string)
+                        .font(emoji.font)
+                        .position(emoji.position.in(geometry))
+                }
             }
         }
     }

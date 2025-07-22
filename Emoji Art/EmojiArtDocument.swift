@@ -36,3 +36,10 @@ extension EmojiArt.Emoji { // вынесли из View во  View Model пото
         Font.system(size: CGFloat(size))
     }
 }
+
+extension EmojiArt.Emoji.Position {
+    func `in`(_ geometry: GeometryProxy) -> CGPoint { // `in` - одинарные обратные кавычки способ использовать зарезервированное ключевое слово в качестве имени то одинарные обратные кавычки как бы экранирование его
+        let center = geometry.frame(in: .local).center
+        return CGPoint(x: center.x + CGFloat(x), y: center.y - CGFloat(y)) // минус потому что система у вппле перевернута, а мы хотим использовать в этом приложении декартову вертикальную  
+    }
+}
