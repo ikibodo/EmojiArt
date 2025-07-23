@@ -10,7 +10,12 @@ import SwiftUI
 class EmojiArtDocument: ObservableObject {
     typealias Emoji = EmojiArt.Emoji
     
-    private var emojiArt = EmojiArt() // так как EmojiArt.background = nil нам не надо ничего инитить
+    private var emojiArt = EmojiArt()
+    
+    init(){
+        emojiArt.addEmoji("🌷", at: .init(x: -200, y: -150), size: 200) // at: .init вывести тип и сказать что я ожидаюм EmojiArt.Position
+        emojiArt.addEmoji("🙃", at: .init(x: 250, y: 100), size: 80)
+    }
     
     var emojis: [Emoji] {
         emojiArt.emojis
