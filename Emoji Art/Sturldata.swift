@@ -35,3 +35,38 @@ enum Sturldata: Transferable {
         ProxyRepresentation { Sturldata.data($0) }
     }
 }
+
+extension URL {
+    var imageURL: URL {
+        if let queryItems = URLComponents(url: self, resolvingAgainstBaseURL: true)?.queryItems {
+            for queryItem in queryItems {
+                if let value = queryItem.value, value.hasPrefix("http"), let imgurl = URL(string: value) {
+                    return imgurl
+                }
+            }
+        }
+        return self
+    }
+    
+    var dataSchemeImageData: Data? {
+        let urlString = absoluteString
+        if urlString.hasPrefix("data:image") {
+            if let comma = urlString.firstIndex(of: ","), comma < urlString.endIndex {
+                let meta = urlString[..<comma]
+                if meta.hasSuffix("base64") {
+                    let data = String(urlString.suffix(after: comma))
+                    if let imageData = Data(base64Encoded: data) {
+                        return imageData
+                    }
+                }
+            }
+        }
+        return nil
+    }
+}
+
+extension Collection {
+    func suffix(after: Self.Index) -> Self.SubSequence {
+        suffix(from: index(after: after))
+    }
+}

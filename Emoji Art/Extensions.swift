@@ -36,15 +36,3 @@ extension String {
         }
     }
 }
-
-extension URL { //  не по лекции, фиксила dataSchemeImageData - утончить в примере 
-    var dataSchemeImageData: Data? {
-        guard scheme == "data",
-              let dataRange = absoluteString.range(of: "base64,") else {
-            return nil
-        }
-
-        let base64String = String(absoluteString[dataRange.upperBound...])
-        return Data(base64Encoded: base64String)
-    }
-}
