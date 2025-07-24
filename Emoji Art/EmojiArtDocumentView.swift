@@ -27,11 +27,10 @@ struct EmojiArtDocumentView: View {
     }
     
     private var documentBody: some View {
-        GeometryReader { geometry in // считывает систему координат
+        GeometryReader { geometry in
             ZStack {
                 Color.white
                 AsyncImage(url: document.background)
-//                    .position(Emoji.Position(x: 0, y: 0).in(geometry))
                     .position(Emoji.Position.zero.in(geometry))
                 ForEach(document.emojis) { emoji in
                     Text(emoji.string)
@@ -39,7 +38,18 @@ struct EmojiArtDocumentView: View {
                         .position(emoji.position.in(geometry))
                 }
             }
+            .dropDestination(for: URL.self) { urls, location in
+                return drop(urls, at: location, in: geometry)
+            }
         }
+    }
+    
+    private func drop(_ urls: [URL], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
+        if let url = urls.first {
+            document.setBackground(url)
+            return true
+        }
+        return false
     }
 }
 
