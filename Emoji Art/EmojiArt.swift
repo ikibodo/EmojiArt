@@ -24,7 +24,7 @@ struct EmojiArt {
     }
     
     struct Emoji: Identifiable {
-        let string: String // единственное что не даем менять - сами эмодзи
+        let string: String
         var position: Position
         var size: Int
         var id: Int
@@ -33,7 +33,7 @@ struct EmojiArt {
             var x: Int
             var y: Int
             
-            static let zero = Self(x: 0, y: 0) //  Self = Position
+            static let zero = Self(x: 0, y: 0)
         }
     }
 }

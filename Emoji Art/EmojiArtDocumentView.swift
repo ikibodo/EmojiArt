@@ -30,8 +30,23 @@ struct EmojiArtDocumentView: View {
         GeometryReader { geometry in
             ZStack {
                 Color.white
-                AsyncImage(url: document.background)
-                    .position(Emoji.Position.zero.in(geometry))
+//                AsyncImage(url: document.background)
+//                    .position(Emoji.Position.zero.in(geometry))
+                AsyncImage(url: document.background) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(
+                                width: geometry.size.width,
+                                height: geometry.size.height
+                            )
+                            .clipped()
+                    default:
+                        Color.white
+                    }
+                }
                 ForEach(document.emojis) { emoji in
                     Text(emoji.string)
                         .font(emoji.font)
@@ -39,7 +54,6 @@ struct EmojiArtDocumentView: View {
                 }
             }
             .dropDestination(for: Sturldata.self) { sturldatas, location in
-                print("Дроп пришел: \(sturldatas), \(location)")
                 return drop(sturldatas, at: location, in: geometry)
             }
         }
@@ -50,7 +64,6 @@ struct EmojiArtDocumentView: View {
             switch sturldata {
             case .url(let url):
                 document.setBackground(url)
-                print("Дроп url: \(document.setBackground(url))")
                 return true
             case .string(let emoji):
                 document.addEmoji(
