@@ -92,7 +92,7 @@ struct EmojiArtDocumentView: View {
 struct ScrollingEmojis: View {
     let emojis: [String]
     init(_ emojis: String) {
-        self.emojis = emojis.uniqued.map(String.init) // .init конструирующая функция передаю функцию которая принимает Character (или другое) и возвращает String
+        self.emojis = emojis.uniqued.map(String.init)
     }
     
     var body: some View {
