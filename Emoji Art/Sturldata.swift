@@ -14,16 +14,17 @@ enum Sturldata: Transferable {
     case data(Data)
     
     init(url: URL) {
-        if let imageData = url.dataSchemeImageData {
+        let directURL = url.imageURL
+        if let imageData = directURL.dataSchemeImageData {
             self = .data(imageData)
         } else {
-            self = .url(url)
+            self = .url(directURL)
         }
     }
     
     init(string: String) {
         if string.hasPrefix("http"), let url = URL(string: string) {
-            self = .url(url)
+            self = .url(url.imageURL)
         } else {
             self = .string(string)
         }

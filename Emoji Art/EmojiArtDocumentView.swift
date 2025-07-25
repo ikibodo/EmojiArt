@@ -39,6 +39,7 @@ struct EmojiArtDocumentView: View {
                 }
             }
             .dropDestination(for: Sturldata.self) { sturldatas, location in
+                print("Дроп пришел: \(sturldatas), \(location)")
                 return drop(sturldatas, at: location, in: geometry)
             }
         }
@@ -49,6 +50,7 @@ struct EmojiArtDocumentView: View {
             switch sturldata {
             case .url(let url):
                 document.setBackground(url)
+                print("Дроп url: \(document.setBackground(url))")
                 return true
             case .string(let emoji):
                 document.addEmoji(
