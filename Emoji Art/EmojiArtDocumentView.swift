@@ -30,32 +30,27 @@ struct EmojiArtDocumentView: View {
         GeometryReader { geometry in
             ZStack {
                 Color.white
-//                AsyncImage(url: document.background)
-//                    .position(Emoji.Position.zero.in(geometry))
-                AsyncImage(url: document.background) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(
-                                width: geometry.size.width,
-                                height: geometry.size.height
-                            )
-                            .clipped()
-                    default:
-                        Color.white
-                    }
-                }
-                ForEach(document.emojis) { emoji in
-                    Text(emoji.string)
-                        .font(emoji.font)
-                        .position(emoji.position.in(geometry))
-                }
+                documentContents(in: geometry)
+                    .scaleEffect(zoom)
+                    .offset(pan)
             }
             .dropDestination(for: Sturldata.self) { sturldatas, location in
                 return drop(sturldatas, at: location, in: geometry)
             }
+        }
+    }
+    
+    @State private var zoom: CGFloat = 0.5
+    @State private var pan: CGOffset = .init(width: 100, height: 100) // см CGOffset в Extensions
+    
+    @ViewBuilder
+    private func documentContents(in geometry: GeometryProxy) -> some View {
+        AsyncImage(url: document.background)
+            .position(Emoji.Position.zero.in(geometry))
+        ForEach(document.emojis) { emoji in
+            Text(emoji.string)
+                .font(emoji.font)
+                .position(emoji.position.in(geometry))
         }
     }
     
