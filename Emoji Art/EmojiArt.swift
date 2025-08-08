@@ -6,9 +6,9 @@
 //
 
 import Foundation
-//  Model - будет вкл в себя фон и все эмодзи, их расположение и размер
+//  Model
 struct EmojiArt {
-    var background: URL? // = nil
+    var background: URL?
     private(set) var emojis = [Emoji]()
     
     private var uniqueEmojiId = 0

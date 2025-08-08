@@ -6,16 +6,16 @@
 //
 
 import SwiftUI
-
+// View_Two
 struct PaletteChooser: View {
-    @EnvironmentObject var store: PaletteStore // получи что-то типа PaletteStore что было внедрено в меня (и это что-то только одно)
+    @EnvironmentObject var store: PaletteStore
     
     var body: some View {
         HStack {
             chooser
             view(for: store.palettes[store.cursorIndex])
         }
-        .clipped() // останется внутри своих границ
+        .clipped()
     }
     
     var chooser: some View {
@@ -26,7 +26,7 @@ struct PaletteChooser: View {
             AnimatedActionButton("New", systemImage: "plus") {
                 store.insert(name: "Math", emojis: "➕➖✖️🟰")
             }
-            AnimatedActionButton("Delete", systemImage: "minus.circle", role: .destructive) { // destructive делает красным лейбл на кнопке
+            AnimatedActionButton("Delete", systemImage: "minus.circle", role: .destructive) {
                 store.palettes.remove(at: store.cursorIndex)
             }
         }
@@ -37,8 +37,8 @@ struct PaletteChooser: View {
             Text(palette.name)
             ScrollingEmojis(palette.emojis)
         }
-        .id(palette.name) // способ заставить представления появляться и исчезать, присваивая им идентификаторы
-        .transition(.asymmetric(insertion: .move(edge: .bottom), removal: .move(edge: .top))) // работает благодаря id выше
+        .id(palette.name)
+        .transition(.asymmetric(insertion: .move(edge: .bottom), removal: .move(edge: .top)))
     }
 }
 

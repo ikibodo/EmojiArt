@@ -9,9 +9,9 @@ import SwiftUI
 // ViewModel_Two
 class PaletteStore: ObservableObject {
     let name: String
-    @Published var palettes: [Palette] { // специально не заприватил, но ViewModel все равно будет полезна, например в случае если пользователь удалил все палитры и нет ни одной  в моделе (см ниже if d инит)
+    @Published var palettes: [Palette] {
         didSet {
-            if palettes.isEmpty, !oldValue.isEmpty { // !oldValue.isEmpty чтобы не было бесконечного цикла
+            if palettes.isEmpty, !oldValue.isEmpty {
                 palettes = oldValue
             }
         }
@@ -41,11 +41,6 @@ class PaletteStore: ObservableObject {
     }
     
     // MARK: - Adding Palettes
-    
-    // Эти функции — рекомендуемый способ добавления палитр в PaletteStore
-    // поскольку они позволяют избежать дублирования идентифицируемых идентичных палитр
-    // предварительно удаляя/заменяя любую палитру с тем же идентификатором, которая уже есть в Palette
-    // это не «устраняет» существующее дублирование, а просто не «вызывает» новое дублирование
     
     func insert(_ palette: Palette, at insertionIndex: Int? = nil) {
         let insertionIndex = bonusCheckedPaletteIndex(insertionIndex ?? cursorIndex)

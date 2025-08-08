@@ -15,7 +15,7 @@ struct Emoji_ArtApp: App {
     var body: some Scene {
         WindowGroup {
             EmojiArtDocumentView(document: defaultDocument)
-                .environmentObject(paletteStore) // используется глобально
+                .environmentObject(paletteStore)
         }
     }
 }
