@@ -7,9 +7,16 @@
 
 import Foundation
 //  Model
-struct EmojiArt {
+struct EmojiArt: Codable {
     var background: URL?
     private(set) var emojis = [Emoji]()
+    
+    func json() throws -> Data {
+//        return try JSONEncoder().encode(self) 
+        let encoder = try JSONEncoder().encode(self)
+        print("EmojiArt = \(String(data: encoder, encoding: .utf8) ?? "nil")")
+        return encoder
+    }
     
     private var uniqueEmojiId = 0
     
@@ -23,13 +30,13 @@ struct EmojiArt {
         ))
     }
     
-    struct Emoji: Identifiable {
+    struct Emoji: Identifiable, Codable {
         let string: String
         var position: Position
         var size: Int
         var id: Int
         
-        struct Position {
+        struct Position: Codable {
             var x: Int
             var y: Int
             
