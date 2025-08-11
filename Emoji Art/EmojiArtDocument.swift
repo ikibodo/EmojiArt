@@ -34,8 +34,10 @@ class EmojiArtDocument: ObservableObject {
     }
     
     init(){
-        emojiArt.addEmoji("🌷", at: .init(x: -200, y: -150), size: 200)
-        emojiArt.addEmoji("🙃", at: .init(x: 250, y: 100), size: 80)
+        if let data = try? Data(contentsOf: autosaveURL),
+           let autosavedEmojiArt = try? EmojiArt(json: data) {
+            emojiArt = autosavedEmojiArt
+        }
     }
     
     var emojis: [Emoji] {
