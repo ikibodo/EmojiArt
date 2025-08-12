@@ -7,22 +7,6 @@
 
 import SwiftUI
 
-extension UserDefaults {
-    func palettes(forKey key: String) -> [Palette] {
-        if let jsonData = data(forKey: key),
-           let decodedPalettes = try? JSONDecoder().decode([Palette].self, from: jsonData) {
-            return decodedPalettes
-        } else {
-            return []
-        }
-    }
-    
-    func set(_ palettes: [Palette], forKey key: String) {
-        let data = try? JSONEncoder().encode(palettes)
-        set(data, forKey: key)
-    }
-}
-
 // ViewModel_Two
 class PaletteStore: ObservableObject {
     let name: String
@@ -36,7 +20,7 @@ class PaletteStore: ObservableObject {
         set {
             if !newValue.isEmpty {
                 UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
-                objectWillChange.send() // будет предупреждать об изменениях
+                objectWillChange.send()
             }
         }
     }
