@@ -14,11 +14,10 @@ enum Sturldata: Transferable {
     case data(Data)
     
     init(url: URL) {
-        let directURL = url.imageURL
-        if let imageData = directURL.dataSchemeImageData {
+        if let imageData = url.dataSchemeImageData {
             self = .data(imageData)
         } else {
-            self = .url(directURL)
+            self = .url(url.imageURL)
         }
     }
     

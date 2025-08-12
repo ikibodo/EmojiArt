@@ -6,22 +6,32 @@
 //
 
 import SwiftUI
+
 // ViewModel_Two
 class PaletteStore: ObservableObject {
     let name: String
-    @Published var palettes: [Palette] {
-        didSet {
-            if palettes.isEmpty, !oldValue.isEmpty {
-                palettes = oldValue
+    
+    private var userDefaultsKey: String { "PaletteStore:" + name }
+    
+    var palettes: [Palette] {
+        get {
+            UserDefaults.standard.palettes(forKey: userDefaultsKey)
+        }
+        set {
+            if !newValue.isEmpty {
+                UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
+                objectWillChange.send()
             }
         }
     }
     
     init(named name: String) {
         self.name = name
-        palettes = Palette.builtins
         if palettes.isEmpty {
-            palettes = [Palette(name: "Warning", emojis: "⚠️")]
+            palettes = Palette.builtins
+            if palettes.isEmpty {
+                palettes = [Palette(name: "Warning", emojis: "⚠️")]
+            }
         }
     }
     
