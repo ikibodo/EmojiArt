@@ -16,11 +16,11 @@ struct PaletteChooser: View {
         HStack {
             chooser
             view(for: store.palettes[store.cursorIndex])
+                .popover(isPresented: $showPaletteEditor) { // sheet -> popover - оба это модальные представления, ими не стоит злоупотреблять
+                    PaletteEditor()
+                }
         }
         .clipped()
-        .sheet(isPresented: $showPaletteEditor) {
-            PaletteEditor()
-        }
     }
     
     var chooser: some View {
