@@ -12,18 +12,41 @@ struct PaletteEditor: View {
     
     private let emojiFont = Font.system(size: 40)
     
+    @State private var emojisToAdd: String = ""
+    
+    enum Focused {
+        case name
+        case addEmojis
+    }
+    
+    @FocusState private var focused: Focused?
+    
     var body: some View {
         Form { // удобен когда нужно собрать информацию от пользователя и часто используется в настройках
             Section(header: Text("Name")) {
                 TextField("Name", text: $palette.name) //$ привязка к привязке Binding
+                    .focused($focused, equals: .name)
             }
             Section(header: Text("Emojis")) {
-                Text("Add Emojis Here")
+                TextField("Add Emojis Here", text: $emojisToAdd)
+                    .focused($focused, equals: .addEmojis)
                     .font(emojiFont)
+                    .onChange(of: emojisToAdd) { emojisToAdd in
+                        palette.emojis = (emojisToAdd + palette.emojis)
+                            .filter { $0.isEmoji } // нет в swift, см расширения
+                            .uniqued
+                    }
                 removeEmojis
             }
         }
             .frame(minWidth: 300, minHeight: 350)
+            .onAppear {
+                if palette.name.isEmpty {
+                    focused = .name
+                } else {
+                    focused = .addEmojis
+                }
+            }
     }
     
     var removeEmojis: some View {
@@ -32,6 +55,12 @@ struct PaletteEditor: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 40))]) {
                 ForEach(palette.emojis.uniqued.map(String.init), id: \.self) { emoji in
                     Text(emoji)
+                        .onTapGesture {
+                            withAnimation {
+                                palette.emojis.remove(emoji.first!)
+                                emojisToAdd.remove(emoji.first!)
+                            }
+                        }
                 }
             }
         }
