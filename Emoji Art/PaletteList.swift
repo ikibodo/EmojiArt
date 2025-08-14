@@ -20,6 +20,7 @@ struct PaletteList: View {
             .navigationDestination(for: Palette.self) { palette in
                 PaletteView(palette: palette)
             }
+            .navigationTitle("\(store.name) Palettes") // должен быть внтури NavigationStack но вне List но рядом с navigationDestination
         }
     }
 }
@@ -36,10 +37,14 @@ struct PaletteView: View {
                     }
                 }
             }
+            .navigationDestination(for: String.self) { emoji in
+                Text(emoji).font(.system(size: 300))
+            }
             Spacer()
         }
         .padding()
         .font(.largeTitle)
+        .navigationTitle(palette.name) // имя title прикрепляем  к отображаемым представлениям и он будет показываться наверху
     }
 }
 
