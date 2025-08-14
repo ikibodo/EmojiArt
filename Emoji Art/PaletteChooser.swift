@@ -11,6 +11,7 @@ struct PaletteChooser: View {
     @EnvironmentObject var store: PaletteStore
     
     @State private var showPaletteEditor = false
+    @State private var showPaletteList = false
     
     var body: some View {
         HStack {
@@ -21,6 +22,10 @@ struct PaletteChooser: View {
         .sheet(isPresented: $showPaletteEditor) { // sheet and popover -  модальные представления, ими не стоит злоупотреблять
             PaletteEditor(palette: $store.palettes[store.cursorIndex])
                 .font(nil) // перестань использовать то, что установлено для меня и при переходе возврати к тому что по умолчанию
+        }
+        .sheet(isPresented: $showPaletteList) {
+            PaletteList()
+                .font(nil)
         }
     }
     
@@ -39,6 +44,9 @@ struct PaletteChooser: View {
             }
             AnimatedActionButton("Edit", systemImage: "pencil") {
                 showPaletteEditor = true
+            }
+            AnimatedActionButton("List", systemImage: "list.bullet.rectangle.portrait") {
+                showPaletteList = true
             }
         }
     }
