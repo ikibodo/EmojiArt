@@ -8,15 +8,14 @@
 import SwiftUI
 
 struct PaletteEditor: View {
-    let palette: Palette
+    @Binding var palette: Palette // будем ссылаться на палитру обратно во ViewModel
     
     private let emojiFont = Font.system(size: 40)
     
     var body: some View {
-//        VStack(alignment: .leading) {
         Form { // удобен когда нужно собрать информацию от пользователя и часто используется в настройках
             Section(header: Text("Name")) {
-                Text(palette.name)
+                TextField("Name", text: $palette.name) //$ привязка к привязке Binding
             }
             Section(header: Text("Emojis")) {
                 Text("Add Emojis Here")

@@ -19,7 +19,7 @@ struct PaletteChooser: View {
         }
         .clipped()
         .sheet(isPresented: $showPaletteEditor) { // sheet and popover -  модальные представления, ими не стоит злоупотреблять
-            PaletteEditor(palette: store.palettes[store.cursorIndex])
+            PaletteEditor(palette: $store.palettes[store.cursorIndex])
                 .font(nil) // перестань использовать то, что установлено для меня и при переходе возврати к тому что по умолчанию
         }
     }
