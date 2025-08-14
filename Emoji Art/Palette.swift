@@ -7,7 +7,7 @@
 
 import Foundation
 // Model_Two
-struct Palette: Identifiable, Codable {
+struct Palette: Identifiable, Codable, Hashable {
     var name: String
     var emojis: String
     var id = UUID()
