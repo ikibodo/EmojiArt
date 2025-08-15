@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct EditablePaletteList: View {
-    @EnvironmentObject var store: PaletteStore
+//    @EnvironmentObject var store: PaletteStore
+    @ObservedObject var store: PaletteStore // не внедрение, а наблюдение 
     
     @State private var showCursorPalette = false
     
