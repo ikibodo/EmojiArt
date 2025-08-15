@@ -7,6 +7,27 @@
 
 import SwiftUI
 
+struct EditablePaletteList: View {
+    @EnvironmentObject var store: PaletteStore
+    
+    var body: some View {
+        NavigationStack {
+            List(store.palettes) { palette in
+                NavigationLink(value: palette) {
+                    VStack(alignment: .leading) {
+                        Text(palette.name)
+                        Text(palette.emojis).lineLimit(1)
+                    }
+                }
+            }
+            .navigationDestination(for: Palette.self) { palette in
+                PaletteView(palette: palette)
+            }
+            .navigationTitle("\(store.name) Palettes")
+        }
+    }
+}
+
 struct PaletteList: View {
     @EnvironmentObject var store: PaletteStore
     
