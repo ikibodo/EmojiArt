@@ -25,8 +25,10 @@ struct PaletteChooser: View {
         }
         .sheet(isPresented: $showPaletteList) {
 //            PaletteList()
-            EditablePaletteList(store: store)
-                .font(nil)
+            NavigationStack { // не обязательно должен быть там же где и NavigationLinks
+                EditablePaletteList(store: store)
+                    .font(nil)
+            }
         }
     }
     
