@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PaletteEditor: View {
-    @Binding var palette: Palette // будем ссылаться на палитру обратно во ViewModel
+    @Binding var palette: Palette
     
     private let emojiFont = Font.system(size: 40)
     
@@ -22,31 +22,31 @@ struct PaletteEditor: View {
     @FocusState private var focused: Focused?
     
     var body: some View {
-        Form { // удобен когда нужно собрать информацию от пользователя и часто используется в настройках
+        Form {
             Section(header: Text("Name")) {
-                TextField("Name", text: $palette.name) //$ привязка к привязке Binding
+                TextField("Name", text: $palette.name)
                     .focused($focused, equals: .name)
             }
             Section(header: Text("Emojis")) {
                 TextField("Add Emojis Here", text: $emojisToAdd)
                     .focused($focused, equals: .addEmojis)
                     .font(emojiFont)
-                    .onChange(of: emojisToAdd) { emojisToAdd in
+                    .onChange(of: emojisToAdd) { _, emojisToAdd in
                         palette.emojis = (emojisToAdd + palette.emojis)
-                            .filter { $0.isEmoji } // нет в swift, см расширения
+                            .filter { $0.isEmoji }
                             .uniqued
                     }
                 removeEmojis
             }
         }
-            .frame(minWidth: 300, minHeight: 350)
-            .onAppear {
-                if palette.name.isEmpty {
-                    focused = .name
-                } else {
-                    focused = .addEmojis
-                }
+        .frame(minWidth: 300, minHeight: 350)
+        .onAppear {
+            if palette.name.isEmpty {
+                focused = .name
+            } else {
+                focused = .addEmojis
             }
+        }
     }
     
     var removeEmojis: some View {

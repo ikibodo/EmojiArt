@@ -15,8 +15,8 @@ struct PaletteManager: View {
     var body: some View {
         NavigationSplitView {
             List(stores, selection: $selectedStore) { store in
-                Text(store.name) // !!! это плохо так как не получим поведение объекта ObservedObject
-                    .tag(store) // тег - это то, что здесь хранится и должно быть одного типа с представлением
+                Text(store.name)
+                    .tag(store)
             }
         }content: {
             if let selectedStore  {

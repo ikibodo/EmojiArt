@@ -19,13 +19,12 @@ struct PaletteChooser: View {
             view(for: store.palettes[store.cursorIndex])
         }
         .clipped()
-        .sheet(isPresented: $showPaletteEditor) { // sheet and popover -  модальные представления, ими не стоит злоупотреблять
+        .sheet(isPresented: $showPaletteEditor) {
             PaletteEditor(palette: $store.palettes[store.cursorIndex])
-                .font(nil) // перестань использовать то, что установлено для меня и при переходе возврати к тому что по умолчанию
+                .font(nil)
         }
         .sheet(isPresented: $showPaletteList) {
-//            PaletteList()
-            NavigationStack { // не обязательно должен быть там же где и NavigationLinks
+            NavigationStack {
                 EditablePaletteList(store: store)
                     .font(nil)
             }

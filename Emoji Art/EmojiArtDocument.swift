@@ -28,7 +28,6 @@ class EmojiArtDocument: ObservableObject {
             let data = try emojiArt.json()
             try data.write(to: url)
         } catch let error {
-            // error is the error thrown
             print("EmojiArtDocument: error while saving \(error.localizedDescription)")
         }
     }
