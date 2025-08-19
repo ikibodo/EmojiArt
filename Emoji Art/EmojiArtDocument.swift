@@ -43,8 +43,44 @@ class EmojiArtDocument: ObservableObject {
         emojiArt.emojis
     }
     
-    var background: URL? {
-        emojiArt.background
+//    var background: URL? {
+//        emojiArt.background
+//    }
+    
+    @Published var background: Background = .none
+    
+    // MARK: - Background Image
+    
+    enum Background { // конечный автомат
+        case none
+        case fetching(URL)
+        case found(UIImage)
+        case failed(String)
+        
+        var uiImage: UIImage? {
+            switch self {
+            case .found(let uiImage): return uiImage
+                default : return nil
+            }
+        }
+        
+        var urlBeingFetched: URL? {
+            switch self {
+            case .fetching(let url): return url
+            default : return nil
+            }
+        }
+        
+        var isFetching: Bool {
+            urlBeingFetched != nil
+        }
+        
+        var failureReason: String? {
+            switch self {
+            case .failed(let reason): return reason
+            default : return nil
+            }
+        }
     }
     
     // MARK: - Intent(s)
