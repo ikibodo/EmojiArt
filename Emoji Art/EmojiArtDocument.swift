@@ -13,6 +13,9 @@ class EmojiArtDocument: ObservableObject {
     @Published private var emojiArt = EmojiArt() {
         didSet {
             autosave()
+            if emojiArt.background != oldValue.background {
+                fetchBackgroundImage()
+            }
         }
     }
     
@@ -50,6 +53,32 @@ class EmojiArtDocument: ObservableObject {
     @Published var background: Background = .none
     
     // MARK: - Background Image
+    
+    private func fetchBackgroundImage() async {
+        if let url = emojiArt.background {
+            background = .fetching(url)
+            do {
+                background = .found(try await fetchUIImage(from: url))
+            } catch {
+                background = .failed("Couldn't set background: \(error.localizedDescription)")
+            }
+        } else {
+            background = .none
+        }
+    }
+    
+    private func fetchUIImage(from url: URL) async throws -> UIImage {
+        let (data, _) = try await URLSession.shared.data(from: url)
+        if let uiImage = UIImage(data: data) {
+            return uiImage
+        } else {
+            throw FetchError.badImageData
+        }
+    }
+    
+    enum FetchError: Error {
+        case badImageData
+    }
     
     enum Background { // конечный автомат
         case none
