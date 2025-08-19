@@ -55,12 +55,15 @@ class EmojiArtDocument: ObservableObject {
     @Published var background: Background = .none
     
     // MARK: - Background Image
-    
+    @MainActor
     private func fetchBackgroundImage() async {
         if let url = emojiArt.background {
             background = .fetching(url)
-            do {
-                background = .found(try await fetchUIImage(from: url))
+            do {// если попытался загрузить медленно получаемое изображение, а потом быстро загрузит другое, но потом придет медленное - оно снесет быстрое, поэтому проверяем не выбрал ли пользователь за это время другой фон (семантическая проблема выполнения)
+                let image = try await fetchUIImage(from: url)
+                if url == emojiArt.background {
+                    background = .found(image)
+                }
             } catch {
                 background = .failed("Couldn't set background: \(error.localizedDescription)")
             }
