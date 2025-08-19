@@ -30,6 +30,12 @@ struct EmojiArtDocumentView: View {
         GeometryReader { geometry in
             ZStack {
                 Color.white
+                if document.background.isFetching {
+                    ProgressView()
+                        .scaleEffect(2)
+                        .tint(.blue)
+                        .position(Emoji.Position.zero.in(geometry))
+                }
                 documentContents(in: geometry)
                     .scaleEffect(zoom * gestureZoom)
                     .offset(pan + gesturePan)
@@ -38,8 +44,23 @@ struct EmojiArtDocumentView: View {
             .dropDestination(for: Sturldata.self) { sturldatas, location in
                 return drop(sturldatas, at: location, in: geometry)
             }
+            .onChange(of: document.background.failureReason) { _, reason in
+                showBackgroundFailureAlert = (reason != nil)
+            }
+            .alert("Set Background",
+                   isPresented: $showBackgroundFailureAlert,
+                   presenting: document.background.failureReason,
+                   actions: { reason in
+                Button("OK", role: .cancel) { }
+            },
+                   message: { reason in
+                Text(reason)
+            }
+            )
         }
     }
+    
+    @State private var showBackgroundFailureAlert = false
     
     @State private var zoom: CGFloat = 1
     @State private var pan: CGOffset = .zero
@@ -69,17 +90,17 @@ struct EmojiArtDocumentView: View {
     
     @ViewBuilder
     private func documentContents(in geometry: GeometryProxy) -> some View {
-//        AsyncImage(url: document.background) { phase in
-//            if let image = phase.image {
-//                image
-//            } else if let url = document.background {
-//                if phase.error != nil {
-//                    Text("\(url)")
-//                } else {
-//                    ProgressView()
-//                }
-//            }
-//        }
+        //        AsyncImage(url: document.background) { phase in
+        //            if let image = phase.image {
+        //                image
+        //            } else if let url = document.background {
+        //                if phase.error != nil {
+        //                    Text("\(url)")
+        //                } else {
+        //                    ProgressView()
+        //                }
+        //            }
+        //        }
         if let uiImage = document.background.uiImage { // покажи картинку фона если она есть
             Image(uiImage: uiImage)
                 .position(Emoji.Position.zero.in(geometry))
