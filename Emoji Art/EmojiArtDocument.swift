@@ -14,7 +14,9 @@ class EmojiArtDocument: ObservableObject {
         didSet {
             autosave()
             if emojiArt.background != oldValue.background {
-                fetchBackgroundImage()
+                Task {
+                    await fetchBackgroundImage()
+                }
             }
         }
     }
