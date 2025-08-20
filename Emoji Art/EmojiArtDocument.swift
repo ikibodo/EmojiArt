@@ -59,10 +59,6 @@ class EmojiArtDocument: ObservableObject {
         return bbox
     }
     
-//    var background: URL? {
-//        emojiArt.background
-//    }
-    
     @Published var background: Background = .none
     
     // MARK: - Background Image
@@ -70,7 +66,7 @@ class EmojiArtDocument: ObservableObject {
     private func fetchBackgroundImage() async {
         if let url = emojiArt.background {
             background = .fetching(url)
-            do {// если попытался загрузить медленно получаемое изображение, а потом быстро загрузит другое, но потом придет медленное - оно снесет быстрое, поэтому проверяем не выбрал ли пользователь за это время другой фон (семантическая проблема выполнения)
+            do {
                 let image = try await fetchUIImage(from: url)
                 if url == emojiArt.background {
                     background = .found(image)
@@ -96,7 +92,7 @@ class EmojiArtDocument: ObservableObject {
         case badImageData
     }
     
-    enum Background { // конечный автомат
+    enum Background {
         case none
         case fetching(URL)
         case found(UIImage)
