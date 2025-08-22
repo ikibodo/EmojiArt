@@ -6,13 +6,40 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 // View Model
-class EmojiArtDocument: ObservableObject {
+
+extension UTType {
+    static let emojiart = UTType(exportedAs: "edu.stanford.cs193p.emojiart")
+}
+
+class EmojiArtDocument: ReferenceFileDocument { // ReferenceFileDocument наследует ObservableObject поэтому оставляем один
+    func snapshot(contentType: UTType) throws -> Data {
+        try emojiArt.json()
+    }
+    
+    func fileWrapper(snapshot: Data, configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: snapshot)
+    }
+    
+//    typealias Snapshot = Data // не нужен потому что snapshot это  Data
+    
+    static var readableContentTypes: [UTType] {
+        [.emojiart]
+    }
+    
+    required init(configuration: ReadConfiguration) throws {
+        if let data = configuration.file.regularFileContents {
+            emojiArt = try EmojiArt(json: data) // если файл есть - получу его
+        } else {
+            throw CocoaError(.fileReadCorruptFile) // ошибка о повреждении файла
+        }
+    }
+    
     typealias Emoji = EmojiArt.Emoji
     
     @Published private var emojiArt = EmojiArt() {
         didSet {
-            autosave()
             if emojiArt.background != oldValue.background {
                 Task {
                     await fetchBackgroundImage()
@@ -21,28 +48,7 @@ class EmojiArtDocument: ObservableObject {
         }
     }
     
-    private let autosaveURL: URL = URL.documentsDirectory.appendingPathComponent("Autosaved.emojiart")
-    
-    private func autosave() {
-        save(to: autosaveURL)
-        print("autosaved to \(autosaveURL)")
-    }
-    
-    private func save(to url: URL) {
-        do {
-            let data = try emojiArt.json()
-            try data.write(to: url)
-        } catch let error {
-            print("EmojiArtDocument: error while saving \(error.localizedDescription)")
-        }
-    }
-    
-    init(){
-        if let data = try? Data(contentsOf: autosaveURL),
-           let autosavedEmojiArt = try? EmojiArt(json: data) {
-            emojiArt = autosavedEmojiArt
-        }
-    }
+    init(){ }
     
     var emojis: [Emoji] {
         emojiArt.emojis
