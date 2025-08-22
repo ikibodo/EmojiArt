@@ -132,6 +132,17 @@ class EmojiArtDocument: ReferenceFileDocument { // ReferenceFileDocument нас�
     
     // MARK: - Intent(s)
     
+    private func undoablyPerform(_ action: String, with undoManager: UndoManager? = nil, doit: () -> Void) {
+        let oldEmojiArt = emojiArt
+        doit()
+        undoManager?.registerUndo(withTarget: self) { myself in // второй аргумент handler независимо от цели он обрабатывается и возвращается вам позже
+            myself.undoablyPerform(action, with: undoManager) { // redo это отмена
+                myself.emojiArt = oldEmojiArt // замыкание захватывает состояние вне себя, поэтому oldEmojiArt это локальная переменная захваченная в куче для ожидания
+            }
+        }
+        undoManager?.setActionName(action)
+    }
+    
     func setBackground(_ url: URL?) {
         emojiArt.background = url
     }
