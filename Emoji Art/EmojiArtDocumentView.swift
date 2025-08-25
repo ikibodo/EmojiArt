@@ -24,6 +24,9 @@ struct EmojiArtDocumentView: View {
                 .padding(.horizontal)
                 .scrollIndicators(.hidden)
         }
+        .toolbar {
+            UndoButton()
+        }
     }
     
     private var documentBody: some View {
