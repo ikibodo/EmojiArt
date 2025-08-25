@@ -46,6 +46,22 @@ class PaletteStore: ObservableObject, Identifiable {
                 palettes = [Palette(name: "Warning", emojis: "⚠️")]
             }
         }
+        observer = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main ) { [weak self] notification in // self тут это просто список вещей, которые нужно зафиксировать, чтобы замыкание сработало, а  weak self означает что не стоит хранить это в куче, и если никто этим не пользуется, то просто сделай это nil и self становится опциональным и больше не хранит это в куче
+//                self.objectWillChange.send() // говорит - "иди и обнови вью потому что я каким-то образом изменился". Это замыкание, захватившее self (содержащее внутри указатель на PaletteStore),  остается в куче и центр уведомления удерживает его ожидая уведомления чтобы можно было вызвать это замыкание. Но это может длиться вечно
+                self?.objectWillChange.send()
+            }
+    }
+    
+    @State private var observer: NSObjectProtocol?
+    
+    deinit { // работает только с ссылочными типами, вызывается когда вы покидаете кучу, и если на вас больше никто не указывает, вас выбрасывают из кучи.
+        print("remove observer")
+        if let observer {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     @Published private var _cursorIndex = 0
