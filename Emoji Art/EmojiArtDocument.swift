@@ -143,12 +143,16 @@ class EmojiArtDocument: ReferenceFileDocument { // ReferenceFileDocument нас�
         undoManager?.setActionName(action)
     }
     
-    func setBackground(_ url: URL?) {
-        emojiArt.background = url
+    func setBackground(_ url: URL?, undoWith undoManager: UndoManager? = nil) {
+        undoablyPerform("Set Background", with: undoManager) {
+            emojiArt.background = url
+        }
     }
     
-    func addEmoji(_ emoji: String, at position: Emoji.Position, size: CGFloat) {
-        emojiArt.addEmoji(emoji, at: position, size: Int(size))
+    func addEmoji(_ emoji: String, at position: Emoji.Position, size: CGFloat, undoWith undoManager: UndoManager? = nil) {
+        undoablyPerform("Add \(emoji)", with: undoManager) {
+            emojiArt.addEmoji(emoji, at: position, size: Int(size))
+        }
     }
 }
 
