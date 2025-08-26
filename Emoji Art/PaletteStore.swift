@@ -6,9 +6,7 @@
 //
 
 import SwiftUI
-
 // ViewModel_Two
-
 extension PaletteStore: Hashable {
     static func == (lhs: PaletteStore, rhs: PaletteStore) -> Bool {
         lhs.name == rhs.name
@@ -25,15 +23,17 @@ class PaletteStore: ObservableObject, Identifiable {
     var id: String { name }
     
     private var userDefaultsKey: String { "PaletteStore:" + name }
+    private var observer: NSObjectProtocol?
     
     var palettes: [Palette] {
         get {
             UserDefaults.standard.palettes(forKey: userDefaultsKey)
         }
         set {
-            if !newValue.isEmpty {
-                UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
-                objectWillChange.send()
+            guard !newValue.isEmpty else { return }
+            UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
+            DispatchQueue.main.async { [weak self] in
+                self?.objectWillChange.send()
             }
         }
     }
@@ -43,8 +43,25 @@ class PaletteStore: ObservableObject, Identifiable {
         if palettes.isEmpty {
             palettes = Palette.builtins
             if palettes.isEmpty {
-                palettes = [Palette(name: "Warning", emojis: "⚠️")]
+                palettes = Palette.builtins.isEmpty
+                    ? [Palette(name: "Warning", emojis: "⚠️")]
+                    : Palette.builtins
             }
+        }
+        observer = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main ) { [weak self] _ in
+                DispatchQueue.main.async { [weak self] in
+                    self?.objectWillChange.send()
+                }
+            }
+    }
+    
+    deinit {
+        print("remove observer")
+        if let obs = observer {
+            NotificationCenter.default.removeObserver(obs)
         }
     }
     
