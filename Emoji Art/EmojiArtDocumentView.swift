@@ -10,7 +10,7 @@ import SwiftUI
 struct EmojiArtDocumentView: View {
     @Environment(\.undoManager) var undoManager
     
-    @StateObject var paletteStore = PaletteStore(named: "Shared") // перенесли вместе с инъекцией environmentObject из Main и теперь у каждого вью свое собственное хранилище палитр
+    @StateObject var paletteStore = PaletteStore(named: "Shared")
     
     typealias Emoji = EmojiArt.Emoji
     

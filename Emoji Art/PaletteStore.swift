@@ -6,9 +6,7 @@
 //
 
 import SwiftUI
-
 // ViewModel_Two
-
 extension PaletteStore: Hashable {
     static func == (lhs: PaletteStore, rhs: PaletteStore) -> Bool {
         lhs.name == rhs.name
@@ -32,10 +30,6 @@ class PaletteStore: ObservableObject, Identifiable {
             UserDefaults.standard.palettes(forKey: userDefaultsKey)
         }
         set {
-//            if !newValue.isEmpty {
-//                UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
-//                objectWillChange.send()
-//            }
             guard !newValue.isEmpty else { return }
             UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
             DispatchQueue.main.async { [weak self] in
@@ -49,7 +43,6 @@ class PaletteStore: ObservableObject, Identifiable {
         if palettes.isEmpty {
             palettes = Palette.builtins
             if palettes.isEmpty {
-//                palettes = [Palette(name: "Warning", emojis: "⚠️")]
                 palettes = Palette.builtins.isEmpty
                     ? [Palette(name: "Warning", emojis: "⚠️")]
                     : Palette.builtins
@@ -58,19 +51,15 @@ class PaletteStore: ObservableObject, Identifiable {
         observer = NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification,
             object: nil,
-            queue: .main ) { [weak self] _ in // self тут это просто список вещей, которые нужно зафиксировать, чтобы замыкание сработало, а  weak self означает что не стоит хранить это в куче, и если никто этим не пользуется, то просто сделай это nil и self становится опциональным и больше не хранит это в куче
-//                self.objectWillChange.send() // говорит - "иди и обнови вью потому что я каким-то образом изменился". Это замыкание, захватившее self (содержащее внутри указатель на PaletteStore),  остается в куче и центр уведомления удерживает его ожидая уведомления чтобы можно было вызвать это замыкание. Но это может длиться вечно
+            queue: .main ) { [weak self] _ in
                 DispatchQueue.main.async { [weak self] in
-                    self?.objectWillChange.send() //Версия по лекции без DispatchQueue.main.async дает фиолетовую ошибку: Publishing changes from within view updates is not allowed, this will cause undefined behavior.
+                    self?.objectWillChange.send()
                 }
             }
     }
     
-    deinit { // работает только с ссылочными типами, вызывается когда вы покидаете кучу, и если на вас больше никто не указывает, вас выбрасывают из кучи.
+    deinit {
         print("remove observer")
-//        if let observer {
-//            NotificationCenter.default.removeObserver(observer)
-//        }
         if let obs = observer {
             NotificationCenter.default.removeObserver(obs)
         }

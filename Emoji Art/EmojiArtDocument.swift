@@ -8,12 +8,11 @@
 import SwiftUI
 import UniformTypeIdentifiers
 // View Model
-
 extension UTType {
     static let emojiart = UTType(exportedAs: "edu.stanford.cs193p.emojiart")
 }
 
-class EmojiArtDocument: ReferenceFileDocument { // ReferenceFileDocument наследует ObservableObject поэтому оставляем один
+class EmojiArtDocument: ReferenceFileDocument {
     func snapshot(contentType: UTType) throws -> Data {
         try emojiArt.json()
     }
@@ -22,17 +21,15 @@ class EmojiArtDocument: ReferenceFileDocument { // ReferenceFileDocument нас�
         FileWrapper(regularFileWithContents: snapshot)
     }
     
-//    typealias Snapshot = Data // не нужен потому что snapshot это  Data
-    
     static var readableContentTypes: [UTType] {
         [.emojiart]
     }
     
     required init(configuration: ReadConfiguration) throws {
         if let data = configuration.file.regularFileContents {
-            emojiArt = try EmojiArt(json: data) // если файл есть - получу его
+            emojiArt = try EmojiArt(json: data)
         } else {
-            throw CocoaError(.fileReadCorruptFile) // ошибка о повреждении файла
+            throw CocoaError(.fileReadCorruptFile)
         }
     }
     
@@ -135,9 +132,9 @@ class EmojiArtDocument: ReferenceFileDocument { // ReferenceFileDocument нас�
     private func undoablyPerform(_ action: String, with undoManager: UndoManager? = nil, doit: () -> Void) {
         let oldEmojiArt = emojiArt
         doit()
-        undoManager?.registerUndo(withTarget: self) { myself in // второй аргумент handler независимо от цели он обрабатывается и возвращается вам позже
-            myself.undoablyPerform(action, with: undoManager) { // redo это отмена
-                myself.emojiArt = oldEmojiArt // замыкание захватывает состояние вне себя, поэтому oldEmojiArt это локальная переменная захваченная в куче для ожидания
+        undoManager?.registerUndo(withTarget: self) { myself in
+            myself.undoablyPerform(action, with: undoManager) {
+                myself.emojiArt = oldEmojiArt
             }
         }
         undoManager?.setActionName(action)
