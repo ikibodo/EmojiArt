@@ -25,15 +25,21 @@ class PaletteStore: ObservableObject, Identifiable {
     var id: String { name }
     
     private var userDefaultsKey: String { "PaletteStore:" + name }
+    private var observer: NSObjectProtocol?
     
     var palettes: [Palette] {
         get {
             UserDefaults.standard.palettes(forKey: userDefaultsKey)
         }
         set {
-            if !newValue.isEmpty {
-                UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
-                objectWillChange.send()
+//            if !newValue.isEmpty {
+//                UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
+//                objectWillChange.send()
+//            }
+            guard !newValue.isEmpty else { return }
+            UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
+            DispatchQueue.main.async { [weak self] in
+                self?.objectWillChange.send()
             }
         }
     }
@@ -43,24 +49,30 @@ class PaletteStore: ObservableObject, Identifiable {
         if palettes.isEmpty {
             palettes = Palette.builtins
             if palettes.isEmpty {
-                palettes = [Palette(name: "Warning", emojis: "⚠️")]
+//                palettes = [Palette(name: "Warning", emojis: "⚠️")]
+                palettes = Palette.builtins.isEmpty
+                    ? [Palette(name: "Warning", emojis: "⚠️")]
+                    : Palette.builtins
             }
         }
         observer = NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification,
             object: nil,
-            queue: .main ) { [weak self] notification in // self тут это просто список вещей, которые нужно зафиксировать, чтобы замыкание сработало, а  weak self означает что не стоит хранить это в куче, и если никто этим не пользуется, то просто сделай это nil и self становится опциональным и больше не хранит это в куче
+            queue: .main ) { [weak self] _ in // self тут это просто список вещей, которые нужно зафиксировать, чтобы замыкание сработало, а  weak self означает что не стоит хранить это в куче, и если никто этим не пользуется, то просто сделай это nil и self становится опциональным и больше не хранит это в куче
 //                self.objectWillChange.send() // говорит - "иди и обнови вью потому что я каким-то образом изменился". Это замыкание, захватившее self (содержащее внутри указатель на PaletteStore),  остается в куче и центр уведомления удерживает его ожидая уведомления чтобы можно было вызвать это замыкание. Но это может длиться вечно
-                self?.objectWillChange.send()
+                DispatchQueue.main.async { [weak self] in
+                    self?.objectWillChange.send() //Версия по лекции без DispatchQueue.main.async дает фиолетовую ошибку: Publishing changes from within view updates is not allowed, this will cause undefined behavior.
+                }
             }
     }
     
-    @State private var observer: NSObjectProtocol?
-    
     deinit { // работает только с ссылочными типами, вызывается когда вы покидаете кучу, и если на вас больше никто не указывает, вас выбрасывают из кучи.
         print("remove observer")
-        if let observer {
-            NotificationCenter.default.removeObserver(observer)
+//        if let observer {
+//            NotificationCenter.default.removeObserver(observer)
+//        }
+        if let obs = observer {
+            NotificationCenter.default.removeObserver(obs)
         }
     }
     
