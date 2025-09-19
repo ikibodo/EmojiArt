@@ -15,6 +15,8 @@ struct EmojiArtDocumentView: View {
     typealias Emoji = EmojiArt.Emoji
     
     @ObservedObject var document: EmojiArtDocument
+    
+    @State private var selection = Set<Emoji.ID>()
 
     @ScaledMetric var paletteEmojiSize: CGFloat = 40
     
@@ -45,6 +47,11 @@ struct EmojiArtDocumentView: View {
                 documentContents(in: geometry)
                     .scaleEffect(zoom * gestureZoom)
                     .offset(pan + gesturePan)
+                
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                selection.removeAll()
             }
             .gesture(panGesture.simultaneously(with: zoomGesture))
             .onTapGesture(count: 2) {
@@ -122,6 +129,14 @@ struct EmojiArtDocumentView: View {
     }
     
     @ViewBuilder
+    private func selectionHighlight(for emoji: Emoji) -> some View {
+        if selection.contains(emoji.id) {
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(.blue, lineWidth: 2)
+        }
+    }
+    
+    @ViewBuilder
     private func documentContents(in geometry: GeometryProxy) -> some View {
         if let uiImage = document.background.uiImage { 
             Image(uiImage: uiImage)
@@ -130,7 +145,16 @@ struct EmojiArtDocumentView: View {
         ForEach(document.emojis) { emoji in
             Text(emoji.string)
                 .font(emoji.font)
+                .background { selectionHighlight(for: emoji) }
+                .contentShape(Rectangle())
                 .position(emoji.position.in(geometry))
+                .onTapGesture {
+                    if selection.contains(emoji.id) {
+                        selection.remove(emoji.id)
+                    } else {
+                        selection.insert(emoji.id)
+                    }
+                }
         }
     }
     
