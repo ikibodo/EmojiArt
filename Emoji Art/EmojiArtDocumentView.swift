@@ -135,7 +135,7 @@ struct EmojiArtDocumentView: View {
             .onChanged { value in
                 guard !selection.isEmpty else { return }
                 selectionDrag = CGSize(
-                    width:  value.translation.width  / (zoom * gestureZoom),
+                    width: value.translation.width / (zoom * gestureZoom),
                     height: value.translation.height / (zoom * gestureZoom)
                 )
             }
@@ -144,7 +144,7 @@ struct EmojiArtDocumentView: View {
                 let delta = CGSize(
                     width: value.translation.width / (zoom * gestureZoom),
                     height: value.translation.height / (zoom * gestureZoom))
-                document.moveEmojis(selection, by: delta)
+                document.moveEmojis(selection, by: delta, undoWith: undoManager)
                 selectionDrag = .zero
             }
     }

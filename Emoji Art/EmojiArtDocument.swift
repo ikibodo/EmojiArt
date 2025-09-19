@@ -130,6 +130,7 @@ class EmojiArtDocument: ReferenceFileDocument {
     // MARK: - Undo
     
     private func undoablyPerform(_ action: String, with undoManager: UndoManager? = nil, doit: () -> Void) {
+        objectWillChange.send() 
         let oldEmojiArt = emojiArt
         doit()
         undoManager?.registerUndo(withTarget: self) { myself in
@@ -156,20 +157,14 @@ class EmojiArtDocument: ReferenceFileDocument {
     
     func move(_ emoji: Emoji, by offset: CGOffset, undoWith undoManager: UndoManager? = nil) {
         undoablyPerform("Move \(emoji)", with: undoManager) {
-            let existingPosition = emojiArt[emoji].position
-            emojiArt[emoji].position = Emoji.Position(
-                x: existingPosition.x + Int(offset.width),
-                y: existingPosition.y - Int(offset.height)
-            )
+            let dx = Int(offset.width.rounded())
+            let dy = Int(offset.height.rounded())
+            guard dx != 0 || dy != 0 else { return }
+            let p = emojiArt[emoji].position
+            emojiArt[emoji].position = .init(x: p.x + dx, y: p.y - dy)
         }
     }
-    
-    func move(emojiWithId id: Emoji.ID, by offset: CGOffset, undoWith undoManager: UndoManager? = nil) {
-        if let emoji = emojiArt[id] {
-            move(emoji, by: offset, undoWith: undoManager)
-        }
-    }
-    
+
     func resize(_ emoji: Emoji, by scale: CGFloat, undoWith undoManager: UndoManager? = nil) {
         undoablyPerform("Resize \(emoji)", with: undoManager) {
             emojiArt[emoji].size = Int(CGFloat(emojiArt[emoji].size) * scale)
@@ -194,9 +189,20 @@ class EmojiArtDocument: ReferenceFileDocument {
         }
     }
     
-    func moveEmojis(_ ids: Set<Emoji.ID>, by offset: CGOffset, undoWith undoManager: UndoManager? = nil) {
-        undoablyPerform("Move Emojis", with: undoManager) {
-            for id in ids { move(emojiWithId: id, by: offset) }
+    func moveEmojis(_ ids: Set<Emoji.ID>, by offset: CGOffset, undoWith um: UndoManager? = nil) {
+        undoablyPerform("Move Emojis", with: um) {
+            let dx = Int(offset.width.rounded())
+            let dy = Int(offset.height.rounded())
+            guard dx != 0 || dy != 0 else { return }
+            for id in ids {
+                if let e = emojiArt[id] {
+                    let p = e.position
+                    emojiArt[e].position = .init(
+                        x: p.x + dx,
+                        y: p.y - dy 
+                    )
+                }
+            }
         }
     }
 
