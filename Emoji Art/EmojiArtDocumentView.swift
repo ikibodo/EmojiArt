@@ -17,6 +17,7 @@ struct EmojiArtDocumentView: View {
     @ObservedObject var document: EmojiArtDocument
     
     @State private var selection = Set<Emoji.ID>()
+    @State private var selectionDrag: CGSize = .zero
 
     @ScaledMetric var paletteEmojiSize: CGFloat = 40
     
@@ -47,6 +48,7 @@ struct EmojiArtDocumentView: View {
                 documentContents(in: geometry)
                     .scaleEffect(zoom * gestureZoom)
                     .offset(pan + gesturePan)
+                    .highPriorityGesture(emojiDragGesture(in: geometry))
                 
             }
             .contentShape(Rectangle())
@@ -128,6 +130,26 @@ struct EmojiArtDocumentView: View {
             }
     }
     
+    private func emojiDragGesture(in geometry: GeometryProxy) -> some Gesture {
+        DragGesture()
+            .onChanged { value in
+                guard !selection.isEmpty else { return }
+                selectionDrag = CGSize(
+                    width:  value.translation.width  / (zoom * gestureZoom),
+                    height: value.translation.height / (zoom * gestureZoom)
+                )
+            }
+            .onEnded { value in
+                guard !selection.isEmpty else { return }
+                let delta = CGSize(
+                    width: value.translation.width / (zoom * gestureZoom),
+                    height: value.translation.height / (zoom * gestureZoom))
+                document.moveEmojis(selection, by: delta)
+                selectionDrag = .zero
+            }
+    }
+
+    
     @ViewBuilder
     private func selectionHighlight(for emoji: Emoji) -> some View {
         if selection.contains(emoji.id) {
@@ -147,6 +169,7 @@ struct EmojiArtDocumentView: View {
                 .font(emoji.font)
                 .background { selectionHighlight(for: emoji) }
                 .contentShape(Rectangle())
+                .offset(offsetFor(emoji))
                 .position(emoji.position.in(geometry))
                 .onTapGesture {
                     if selection.contains(emoji.id) {
@@ -156,6 +179,10 @@ struct EmojiArtDocumentView: View {
                     }
                 }
         }
+    }
+    
+    private func offsetFor(_ emoji: Emoji) -> CGSize {
+        selection.contains(emoji.id) ? selectionDrag : .zero
     }
     
     private func drop(_ sturldatas: [Sturldata], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
