@@ -80,3 +80,22 @@ struct UndoButton: View {
         }
     }
 }
+
+struct DeleteButton: View {
+    @Environment(\.undoManager) private var undoManager
+    let document: EmojiArtDocument
+    @Binding var selection: Set<EmojiArt.Emoji.ID>
+    
+    var body: some View {
+        Button(role: .destructive) {
+            document.removeEmojis(selection, undoWith: undoManager)
+            selection.removeAll()
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+        .disabled(selection.isEmpty)
+        .keyboardShortcut(.delete, modifiers: [])
+        .help("Delete selected emojis")
+    }
+}
+

@@ -30,7 +30,10 @@ struct EmojiArtDocumentView: View {
                 .scrollIndicators(.hidden)
         }
         .toolbar {
-            UndoButton()
+            ToolbarItemGroup(placement: .primaryAction) {
+                UndoButton()
+                DeleteButton(document: document, selection: $selection)
+            }
         }
         .environmentObject(paletteStore)
     }
