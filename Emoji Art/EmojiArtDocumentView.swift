@@ -21,6 +21,15 @@ struct EmojiArtDocumentView: View {
 
     @ScaledMetric var paletteEmojiSize: CGFloat = 40
     
+    @State private var showBackgroundFailureAlert = false
+    
+    @State private var zoom: CGFloat = 1
+    @State private var pan: CGOffset = .zero
+    
+    @GestureState private var gestureZoom: CGFloat = 1
+    @GestureState private var gesturePan: CGOffset = .zero
+    @GestureState private var selectionPinch: CGFloat = 1
+    
     var body: some View {
         VStack(spacing: 0) {
             documentBody
@@ -58,6 +67,7 @@ struct EmojiArtDocumentView: View {
             .onTapGesture {
                 selection.removeAll()
             }
+            .highPriorityGesture(selection.isEmpty ? nil : selectedPinchGesture)
             .gesture(panGesture.simultaneously(with: zoomGesture))
             .onTapGesture(count: 2) {
                 zoomToFit(document.bbox, in: geometry)
@@ -105,14 +115,6 @@ struct EmojiArtDocumentView: View {
         }
     }
     
-    @State private var showBackgroundFailureAlert = false
-    
-    @State private var zoom: CGFloat = 1
-    @State private var pan: CGOffset = .zero
-    
-    @GestureState private var gestureZoom: CGFloat = 1
-    @GestureState private var gesturePan: CGOffset = .zero
-    
     private var zoomGesture: some Gesture {
         MagnificationGesture()
             .updating($gestureZoom) { inMotionPinchScale, gestureZoom, _ in
@@ -151,7 +153,17 @@ struct EmojiArtDocumentView: View {
                 selectionDrag = .zero
             }
     }
-
+    
+    private var selectedPinchGesture: some Gesture {
+        MagnificationGesture()
+            .updating($selectionPinch) { value, state, _ in
+                state = value
+            }
+            .onEnded { scale in
+                guard !selection.isEmpty else { return }
+                document.resizeEmojis(selection, by: scale, undoWith: undoManager)
+            }
+    }
     
     @ViewBuilder
     private func selectionHighlight(for emoji: Emoji) -> some View {
@@ -172,6 +184,7 @@ struct EmojiArtDocumentView: View {
                 .font(emoji.font)
                 .background { selectionHighlight(for: emoji) }
                 .contentShape(Rectangle())
+                .scaleEffect(selection.contains(emoji.id) ? selectionPinch : 1)
                 .offset(offsetFor(emoji))
                 .position(emoji.position.in(geometry))
                 .onTapGesture {
