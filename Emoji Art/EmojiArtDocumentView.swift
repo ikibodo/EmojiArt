@@ -60,8 +60,10 @@ struct EmojiArtDocumentView: View {
                 documentContents(in: geometry)
                     .scaleEffect(zoom * gestureZoom)
                     .offset(pan + gesturePan)
-                    .highPriorityGesture(emojiDragGesture(in: geometry))
-                
+                    .highPriorityGesture(
+                        emojiDragGesture(in: geometry),
+                        including: selection.isEmpty ? .subviews : .gesture
+                    )
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -165,6 +167,18 @@ struct EmojiArtDocumentView: View {
             }
     }
     
+    private func singleEmojiDrag(_ emoji: Emoji) -> some Gesture {
+        DragGesture()
+            .onEnded { value in
+                guard selection.isEmpty else { return }
+                let delta = CGSize(
+                    width: value.translation.width / (zoom * gestureZoom),
+                    height: value.translation.height / (zoom * gestureZoom)
+                )
+                document.move(emoji, by: delta, undoWith: undoManager)
+            }
+    }
+    
     @ViewBuilder
     private func selectionHighlight(for emoji: Emoji) -> some View {
         if selection.contains(emoji.id) {
@@ -194,6 +208,7 @@ struct EmojiArtDocumentView: View {
                         selection.insert(emoji.id)
                     }
                 }
+                .highPriorityGesture(selection.isEmpty ? singleEmojiDrag(emoji) : nil)
         }
     }
     
