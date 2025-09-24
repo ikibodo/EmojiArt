@@ -22,9 +22,10 @@ struct EmojiArtDocumentView: View {
     @ScaledMetric var paletteEmojiSize: CGFloat = 40
     
     @State private var showBackgroundFailureAlert = false
-    
     @State private var zoom: CGFloat = 1
     @State private var pan: CGOffset = .zero
+    @State private var showDeleteAlert = false
+    @State private var emojiToDelete: Emoji.ID? = nil
     
     @GestureState private var gestureZoom: CGFloat = 1
     @GestureState private var gesturePan: CGOffset = .zero
@@ -93,6 +94,15 @@ struct EmojiArtDocumentView: View {
                 Text(reason)
             }
             )
+            .alert("Delete this emoji?", isPresented: $showDeleteAlert) {
+                Button("Delete", role: .destructive) {
+                    if let id = emojiToDelete {
+                        document.removeEmojis([id], undoWith: undoManager)
+                        selection.remove(id)
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            }
         }
     }
     
@@ -207,6 +217,10 @@ struct EmojiArtDocumentView: View {
                     } else {
                         selection.insert(emoji.id)
                     }
+                }
+                .onLongPressGesture {
+                    emojiToDelete = emoji.id
+                    showDeleteAlert = true
                 }
                 .highPriorityGesture(selection.isEmpty ? singleEmojiDrag(emoji) : nil)
         }
