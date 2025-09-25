@@ -18,7 +18,7 @@ struct EmojiArtDocumentView: View {
     
     @State private var selection = Set<Emoji.ID>()
     @State private var selectionDrag: CGSize = .zero
-
+    
     @ScaledMetric var paletteEmojiSize: CGFloat = 40
     
     @State private var showBackgroundFailureAlert = false
@@ -26,6 +26,8 @@ struct EmojiArtDocumentView: View {
     @State private var pan: CGOffset = .zero
     @State private var showDeleteAlert = false
     @State private var emojiToDelete: Emoji.ID? = nil
+    @State private var singleDrag: CGSize = .zero
+    @State private var singleDraggingID: Emoji.ID? = nil
     
     @GestureState private var gestureZoom: CGFloat = 1
     @GestureState private var gesturePan: CGOffset = .zero
@@ -69,9 +71,10 @@ struct EmojiArtDocumentView: View {
             .contentShape(Rectangle())
             .onTapGesture {
                 selection.removeAll()
+                selectionDrag = .zero
             }
             .highPriorityGesture(selection.isEmpty ? nil : selectedPinchGesture)
-            .gesture(panGesture.simultaneously(with: zoomGesture))
+            .gesture(selection.isEmpty ? panGesture.simultaneously(with: zoomGesture) : nil)
             .onTapGesture(count: 2) {
                 zoomToFit(document.bbox, in: geometry)
             }
@@ -122,7 +125,7 @@ struct EmojiArtDocumentView: View {
                 pan = CGOffset(
                     width: -rect.midX * zoom,
                     height: -rect.midY * zoom
-                    )
+                )
             }
         }
     }
@@ -179,6 +182,14 @@ struct EmojiArtDocumentView: View {
     
     private func singleEmojiDrag(_ emoji: Emoji) -> some Gesture {
         DragGesture()
+            .onChanged { value in
+                guard selection.isEmpty else { return }
+                singleDraggingID = emoji.id
+                singleDrag = CGSize(
+                    width: value.translation.width / (zoom * gestureZoom),
+                    height: value.translation.height / (zoom * gestureZoom)
+                )
+            }
             .onEnded { value in
                 guard selection.isEmpty else { return }
                 let delta = CGSize(
@@ -186,6 +197,8 @@ struct EmojiArtDocumentView: View {
                     height: value.translation.height / (zoom * gestureZoom)
                 )
                 document.move(emoji, by: delta, undoWith: undoManager)
+                singleDrag = .zero
+                singleDraggingID = nil
             }
     }
     
@@ -199,7 +212,7 @@ struct EmojiArtDocumentView: View {
     
     @ViewBuilder
     private func documentContents(in geometry: GeometryProxy) -> some View {
-        if let uiImage = document.background.uiImage { 
+        if let uiImage = document.background.uiImage {
             Image(uiImage: uiImage)
                 .position(Emoji.Position.zero.in(geometry))
         }
@@ -209,8 +222,8 @@ struct EmojiArtDocumentView: View {
                 .background { selectionHighlight(for: emoji) }
                 .contentShape(Rectangle())
                 .scaleEffect(selection.contains(emoji.id) ? selectionPinch : 1)
-                .offset(offsetFor(emoji))
                 .position(emoji.position.in(geometry))
+                .offset(offsetFor(emoji))
                 .onTapGesture {
                     if selection.contains(emoji.id) {
                         selection.remove(emoji.id)
@@ -227,7 +240,13 @@ struct EmojiArtDocumentView: View {
     }
     
     private func offsetFor(_ emoji: Emoji) -> CGSize {
-        selection.contains(emoji.id) ? selectionDrag : .zero
+        if selection.contains(emoji.id) {
+            return selectionDrag
+        } else if singleDraggingID == emoji.id {
+            return singleDrag
+        } else {
+            return .zero
+        }
     }
     
     private func drop(_ sturldatas: [Sturldata], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
