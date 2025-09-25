@@ -127,9 +127,10 @@ class EmojiArtDocument: ReferenceFileDocument {
         }
     }
     
-    // MARK: - Intent(s)
+    // MARK: - Undo
     
     private func undoablyPerform(_ action: String, with undoManager: UndoManager? = nil, doit: () -> Void) {
+        objectWillChange.send() 
         let oldEmojiArt = emojiArt
         doit()
         undoManager?.registerUndo(withTarget: self) { myself in
@@ -140,6 +141,8 @@ class EmojiArtDocument: ReferenceFileDocument {
         undoManager?.setActionName(action)
     }
     
+    // MARK: - Intent(s)
+    
     func setBackground(_ url: URL?, undoWith undoManager: UndoManager? = nil) {
         undoablyPerform("Set Background", with: undoManager) {
             emojiArt.background = url
@@ -149,6 +152,63 @@ class EmojiArtDocument: ReferenceFileDocument {
     func addEmoji(_ emoji: String, at position: Emoji.Position, size: CGFloat, undoWith undoManager: UndoManager? = nil) {
         undoablyPerform("Add \(emoji)", with: undoManager) {
             emojiArt.addEmoji(emoji, at: position, size: Int(size))
+        }
+    }
+    
+    func move(_ emoji: Emoji, by offset: CGOffset, undoWith undoManager: UndoManager? = nil) {
+        undoablyPerform("Move \(emoji)", with: undoManager) {
+            let dx = Int(offset.width.rounded())
+            let dy = Int(offset.height.rounded())
+            guard dx != 0 || dy != 0 else { return }
+            let p = emojiArt[emoji].position
+            emojiArt[emoji].position = .init(x: p.x + dx, y: p.y - dy)
+        }
+    }
+
+    func resize(_ emoji: Emoji, by scale: CGFloat, undoWith undoManager: UndoManager? = nil) {
+        undoablyPerform("Resize \(emoji)", with: undoManager) {
+            emojiArt[emoji].size = Int(CGFloat(emojiArt[emoji].size) * scale)
+        }
+    }
+    
+    func resize(emojiWithId id: Emoji.ID, by scale: CGFloat, undoWith undoManager: UndoManager? = nil) {
+        if let emoji = emojiArt[id] {
+            resize(emoji, by: scale, undoWith: undoManager)
+        }
+    }
+    
+    func remove(emojiWithId id: Emoji.ID, undoWith undoManager: UndoManager? = nil) {
+        undoablyPerform("Delete Emoji", with: undoManager) {
+            emojiArt.remove(emojiWithId: id)
+        }
+    }
+
+    func removeEmojis(_ ids: Set<Emoji.ID>, undoWith undoManager: UndoManager? = nil) {
+        undoablyPerform("Delete Emojis", with: undoManager) {
+            emojiArt.removeEmojis(withIDs: ids)
+        }
+    }
+    
+    func moveEmojis(_ ids: Set<Emoji.ID>, by offset: CGOffset, undoWith um: UndoManager? = nil) {
+        undoablyPerform("Move Emojis", with: um) {
+            let dx = Int(offset.width.rounded())
+            let dy = Int(offset.height.rounded())
+            guard dx != 0 || dy != 0 else { return }
+            for id in ids {
+                if let e = emojiArt[id] {
+                    let p = e.position
+                    emojiArt[e].position = .init(
+                        x: p.x + dx,
+                        y: p.y - dy 
+                    )
+                }
+            }
+        }
+    }
+
+    func resizeEmojis(_ ids: Set<Emoji.ID>, by scale: CGFloat, undoWith undoManager: UndoManager? = nil) {
+        undoablyPerform("Resize Emojis", with: undoManager) {
+            for id in ids { resize(emojiWithId: id, by: scale) }
         }
     }
 }
