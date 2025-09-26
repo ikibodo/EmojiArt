@@ -263,8 +263,9 @@ struct EmojiArtDocumentView: View {
                     undoWith: undoManager
                 )
                 return true
-            default:
-                break
+            case .data(let data):
+                document.setBackground(data, undoWith: undoManager)
+                return true
             }
         }
         return false
