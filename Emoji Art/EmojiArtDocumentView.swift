@@ -87,6 +87,9 @@ struct EmojiArtDocumentView: View {
             .onChange(of: document.background.uiImage) { _, uiImage in
                 zoomToFit(uiImage?.size, in: geometry)
             }
+            .task(id: document.bbox) {
+                zoomToFit(document.bbox, in: geometry)
+            }
             .alert("Set Background",
                    isPresented: $showBackgroundFailureAlert,
                    presenting: document.background.failureReason,
