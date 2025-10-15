@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct AnimatedActionButton: View {
     var title: String? = nil
@@ -96,6 +97,46 @@ struct DeleteButton: View {
         .disabled(selection.isEmpty)
         .keyboardShortcut(.delete, modifiers: [])
         .help("Delete selected emojis")
+    }
+}
+
+struct ChooseBackgroundButton: View {
+    @Environment(\.undoManager) private var undoManager
+    let document: EmojiArtDocument
+
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var showNoImageAlert = false
+
+    var body: some View {
+        PhotosPicker(
+            selection: $pickerItem,
+            matching: .images,
+            photoLibrary: .shared()
+        ) {
+            Label("Choose Background", systemImage: "photo")
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+        .onChange(of: pickerItem) { _, newItem in
+            guard let item = newItem else { return }
+            Task {
+                defer { pickerItem = nil }
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    document.setBackground(data, undoWith: undoManager)
+                    return
+                }
+                if let url = try? await item.loadTransferable(type: URL.self) {
+                    document.setBackground(url, undoWith: undoManager)
+                    return
+                }
+                showNoImageAlert = true
+            }
+        }
+        .alert("Нечего выбрать", isPresented: $showNoImageAlert) {
+            Button("ОК", role: .cancel) {}
+        } message: {
+            Text("Не удалось получить изображение из Фото.")
+        }
     }
 }
 

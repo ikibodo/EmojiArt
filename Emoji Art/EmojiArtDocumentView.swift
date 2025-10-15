@@ -44,8 +44,9 @@ struct EmojiArtDocumentView: View {
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 UndoButton()
-                PasteBackgroundButton(document: document)
                 DeleteButton(document: document, selection: $selection)
+                ChooseBackgroundButton(document: document)
+                PasteBackgroundButton(document: document)
             }
         }
         .environmentObject(paletteStore)
