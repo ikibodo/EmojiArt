@@ -73,3 +73,20 @@ extension String {
         removeAll(where: { $0 == ch })
     }
 }
+
+extension URL {
+    static func imageDataURL(from data: Data) -> URL? {
+        let bytes = [UInt8](data.prefix(8))
+        let isPNG  = bytes.starts(with: [0x89, 0x50, 0x4E, 0x47])
+        let isJPEG = bytes.prefix(2) == [0xFF, 0xD8]
+
+        if isPNG || isJPEG {
+            let mime = isPNG ? "image/png" : "image/jpeg"
+            return URL(string: "data:\(mime);base64,\(data.base64EncodedString())")
+        } else if let ui = UIImage(data: data), let png = ui.pngData() {
+            return URL(string: "data:image/png;base64,\(png.base64EncodedString())")
+        } else {
+            return nil
+        }
+    }
+}

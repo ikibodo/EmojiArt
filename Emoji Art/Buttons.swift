@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct AnimatedActionButton: View {
     var title: String? = nil
@@ -99,3 +100,82 @@ struct DeleteButton: View {
     }
 }
 
+struct ChooseBackgroundButton: View {
+    @Environment(\.undoManager) private var undoManager
+    let document: EmojiArtDocument
+
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var showNoImageAlert = false
+
+    var body: some View {
+        PhotosPicker(
+            selection: $pickerItem,
+            matching: .images,
+            photoLibrary: .shared()
+        ) {
+            Label("Choose Background", systemImage: "photo")
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+        .onChange(of: pickerItem) { _, newItem in
+            guard let item = newItem else { return }
+            Task {
+                defer { pickerItem = nil }
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    document.setBackground(data, undoWith: undoManager)
+                    return
+                }
+                if let url = try? await item.loadTransferable(type: URL.self) {
+                    document.setBackground(url, undoWith: undoManager)
+                    return
+                }
+                showNoImageAlert = true
+            }
+        }
+        .alert("Нечего выбрать", isPresented: $showNoImageAlert) {
+            Button("ОК", role: .cancel) {}
+        } message: {
+            Text("Не удалось получить изображение из Фото.")
+        }
+    }
+}
+
+struct PasteBackgroundButton: View {
+    @Environment(\.undoManager) private var undoManager
+    let document: EmojiArtDocument
+    
+    @State private var showNoImageAlert = false
+    
+    var body: some View {
+        PasteButton(payloadType: Sturldata.self) { items in
+            if !handlePaste(items) {
+                showNoImageAlert = true
+            }
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+        .help("Paste image or image URL as background")
+        .alert("Nothing to paste", isPresented: $showNoImageAlert) {
+            Button("OK", role: .cancel) {}
+        }
+    }
+    
+    private func handlePaste(_ items: [Sturldata]) -> Bool {
+        for item in items {
+            switch item {
+            case .url(let url):
+                document.setBackground(url, undoWith: undoManager)
+                return true
+            case .data(let data):
+                document.setBackground(data, undoWith: undoManager)
+                return true
+            case .string(let s):
+                if let url = URL(string: s)?.imageURL {
+                    document.setBackground(url, undoWith: undoManager)
+                    return true
+                }
+            }
+        }
+        return false
+    }
+}

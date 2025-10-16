@@ -149,6 +149,11 @@ class EmojiArtDocument: ReferenceFileDocument {
         }
     }
     
+    func setBackground(_ data: Data, undoWith undoManager: UndoManager? = nil) {
+        guard let dataURL = URL.imageDataURL(from: data) else { return }
+        setBackground(dataURL, undoWith: undoManager)
+    }
+    
     func addEmoji(_ emoji: String, at position: Emoji.Position, size: CGFloat, undoWith undoManager: UndoManager? = nil) {
         undoablyPerform("Add \(emoji)", with: undoManager) {
             emojiArt.addEmoji(emoji, at: position, size: Int(size))

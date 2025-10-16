@@ -45,6 +45,8 @@ struct EmojiArtDocumentView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 UndoButton()
                 DeleteButton(document: document, selection: $selection)
+                ChooseBackgroundButton(document: document)
+                PasteBackgroundButton(document: document)
             }
         }
         .environmentObject(paletteStore)
@@ -86,6 +88,12 @@ struct EmojiArtDocumentView: View {
             }
             .onChange(of: document.background.uiImage) { _, uiImage in
                 zoomToFit(uiImage?.size, in: geometry)
+            }
+            .task(id: document.bbox) {
+                let rect = document.bbox
+                let screen = geometry.size.width * geometry.size.height
+                guard rect.width * rect.height > screen * 0.4 else { return }
+                zoomToFit(rect, in: geometry)
             }
             .alert("Set Background",
                    isPresented: $showBackgroundFailureAlert,
@@ -263,8 +271,9 @@ struct EmojiArtDocumentView: View {
                     undoWith: undoManager
                 )
                 return true
-            default:
-                break
+            case .data(let data):
+                document.setBackground(data, undoWith: undoManager)
+                return true
             }
         }
         return false
