@@ -28,6 +28,9 @@ struct EmojiArtDocumentView: View {
     @State private var emojiToDelete: Emoji.ID? = nil
     @State private var singleDrag: CGSize = .zero
     @State private var singleDraggingID: Emoji.ID? = nil
+    @State private var marqueeStart: CGPoint? = nil
+    @State private var marqueeRect: CGRect = .zero
+
     
     @GestureState private var gestureZoom: CGFloat = 1
     @GestureState private var gesturePan: CGOffset = .zero
@@ -69,6 +72,12 @@ struct EmojiArtDocumentView: View {
                         emojiDragGesture(in: geometry),
                         including: selection.isEmpty ? .subviews : .gesture
                     )
+                if marqueeStart != nil {
+                    Rectangle()
+                        .path(in: marqueeRect)
+                        .stroke(Color.blue, lineWidth: 1)
+                        .background(Color.blue.opacity(0.1))
+                }
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -76,6 +85,7 @@ struct EmojiArtDocumentView: View {
                 selectionDrag = .zero
             }
             .highPriorityGesture(selection.isEmpty ? nil : selectedPinchGesture)
+            .highPriorityGesture(selection.isEmpty ? marqueeGesture(in: geometry) : nil)
             .gesture(selection.isEmpty ? panGesture.simultaneously(with: zoomGesture) : nil)
             .onTapGesture(count: 2) {
                 zoomToFit(document.bbox, in: geometry)
@@ -210,6 +220,43 @@ struct EmojiArtDocumentView: View {
             }
     }
     
+    private func marqueeGesture(in geometry: GeometryProxy) -> some Gesture {
+        DragGesture()
+            .onChanged { value in
+                if marqueeStart == nil {
+                    marqueeStart = value.startLocation
+                    marqueeRect = .zero
+                }
+                if let start = marqueeStart {
+                    let current = value.location
+                    marqueeRect = CGRect(
+                        x: min(start.x, current.x),
+                        y: min(start.y, current.y),
+                        width: abs(start.x - current.x),
+                        height: abs(start.y - current.y)
+                    )
+                }
+            }
+            .onEnded { value in
+                guard let start = marqueeStart else { return }
+                let end = value.location
+                let rect = CGRect(
+                    x: min(start.x, end.x),
+                    y: min(start.y, end.y),
+                    width: abs(start.x - end.x),
+                    height: abs(start.y - end.y)
+                )
+                for emoji in document.emojis {
+                    let pos = emoji.position.in(geometry)
+                    if rect.contains(pos) {
+                        selection.insert(emoji.id)
+                    }
+                }
+                marqueeStart = nil
+                marqueeRect = .zero
+            }
+    }
+
     @ViewBuilder
     private func selectionHighlight(for emoji: Emoji) -> some View {
         if selection.contains(emoji.id) {
