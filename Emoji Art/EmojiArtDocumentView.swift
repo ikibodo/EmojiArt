@@ -87,7 +87,7 @@ struct EmojiArtDocumentView: View {
                 selectionDrag = .zero
             }
             .highPriorityGesture(selection.isEmpty ? nil : selectedPinchGesture)
-            .highPriorityGesture(selection.isEmpty ? marqueeGesture(in: geometry) : nil)
+            .gesture(selection.isEmpty ? marqueeGesture(in: geometry) : nil)
             .gesture(selection.isEmpty ? panGesture.simultaneously(with: zoomGesture) : nil)
             .onTapGesture(count: 2) {
                 zoomToFit(document.bbox, in: geometry)
