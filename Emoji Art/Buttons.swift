@@ -179,3 +179,35 @@ struct PasteBackgroundButton: View {
         return false
     }
 }
+
+struct BringToFrontButton: View {
+    @Environment(\.undoManager) private var undoManager
+    let document: EmojiArtDocument
+    @Binding var selection: Set<EmojiArt.Emoji.ID>
+
+    var body: some View {
+        Button {
+            document.bringToFront(selection, undoWith: undoManager)
+        } label: {
+            Label("Bring to Front", systemImage: "square.3.stack.3d.top.filled")
+        }
+        .disabled(selection.isEmpty)
+        .help("Bring selected to front")
+    }
+}
+
+struct SendToBackButton: View {
+    @Environment(\.undoManager) private var undoManager
+    let document: EmojiArtDocument
+    @Binding var selection: Set<EmojiArt.Emoji.ID>
+
+    var body: some View {
+        Button {
+            document.sendToBack(selection, undoWith: undoManager)
+        } label: {
+            Label("Send to Back", systemImage: "square.3.stack.3d.bottom.filled")
+        }
+        .disabled(selection.isEmpty)
+        .help("Send selected to back")
+    }
+}

@@ -47,6 +47,8 @@ struct EmojiArtDocumentView: View {
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 UndoButton()
+                SendToBackButton(document: document, selection: $selection)
+                BringToFrontButton(document: document, selection: $selection)
                 DeleteButton(document: document, selection: $selection)
                 ChooseBackgroundButton(document: document)
                 PasteBackgroundButton(document: document)
