@@ -46,6 +46,18 @@ struct EmojiArt: Codable {
         emojis.removeAll { ids.contains($0.id) }
     }
     
+    mutating func bringToFront(_ ids: Set<Emoji.ID>) {
+        let selected = emojis.filter { ids.contains($0.id) }
+        let others   = emojis.filter { !ids.contains($0.id) }
+        emojis = others + selected
+    }
+
+    mutating func sendToBack(_ ids: Set<Emoji.ID>) {
+        let selected = emojis.filter { ids.contains($0.id) }
+        let others   = emojis.filter { !ids.contains($0.id) }
+        emojis = selected + others
+    }
+    
     subscript(_ emojiId: Emoji.ID) -> Emoji? {
         if let index = index(of: emojiId) {
             return emojis[index]

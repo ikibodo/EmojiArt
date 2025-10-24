@@ -216,6 +216,22 @@ class EmojiArtDocument: ReferenceFileDocument {
             for id in ids { resize(emojiWithId: id, by: scale) }
         }
     }
+    
+    // MARK: - Z-Order
+
+    func bringToFront(_ ids: Set<Emoji.ID>, undoWith undoManager: UndoManager? = nil) {
+        guard !ids.isEmpty else { return }
+        undoablyPerform("Bring To Front", with: undoManager) {
+            emojiArt.bringToFront(ids)
+        }
+    }
+
+    func sendToBack(_ ids: Set<Emoji.ID>, undoWith undoManager: UndoManager? = nil) {
+        guard !ids.isEmpty else { return }
+        undoablyPerform("Send To Back", with: undoManager) {
+            emojiArt.sendToBack(ids)
+        }
+    }
 }
 
 extension EmojiArt.Emoji {
