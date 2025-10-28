@@ -211,3 +211,19 @@ struct SendToBackButton: View {
         .help("Send selected to back")
     }
 }
+
+struct ShareExportButton: View {
+    let item: ExportedPNG?
+    let preview: Image?
+    
+    var body: some View {
+        ShareLink(
+            item: item ?? ExportedPNG(data: Data()),
+            preview: SharePreview("Emoji Art", image: preview ?? Image(systemName: "photo"))
+        ) {
+            Label("Export", systemImage: "square.and.arrow.up")
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+    }
+}

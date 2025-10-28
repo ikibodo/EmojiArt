@@ -30,7 +30,8 @@ struct EmojiArtDocumentView: View {
     @State private var singleDraggingID: Emoji.ID? = nil
     @State private var marqueeStart: CGPoint? = nil
     @State private var marqueeRect: CGRect = .zero
-
+    @State private var exportThumbnail: Image? = nil
+    @State private var exportItem: ExportedPNG? = nil
     
     @GestureState private var gestureZoom: CGFloat = 1
     @GestureState private var gesturePan: CGOffset = .zero
@@ -52,6 +53,10 @@ struct EmojiArtDocumentView: View {
                 DeleteButton(document: document, selection: $selection)
                 ChooseBackgroundButton(document: document)
                 PasteBackgroundButton(document: document)
+                ShareExportButton(
+                    item: exportItem,
+                    preview: exportThumbnail
+                )
             }
         }
         .environmentObject(paletteStore)
