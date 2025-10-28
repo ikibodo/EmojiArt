@@ -31,7 +31,7 @@ struct EmojiArtDocumentView: View {
     @State private var marqueeStart: CGPoint? = nil
     @State private var marqueeRect: CGRect = .zero
     @State private var exportThumbnail: Image? = nil
-    @State private var exportItem: ExportedPNG? = nil
+    @State private var canvasSize: CGSize = .zero
     
     @GestureState private var gestureZoom: CGFloat = 1
     @GestureState private var gesturePan: CGOffset = .zero
@@ -54,7 +54,7 @@ struct EmojiArtDocumentView: View {
                 ChooseBackgroundButton(document: document)
                 PasteBackgroundButton(document: document)
                 ShareExportButton(
-                    item: exportItem,
+                    item: renderPNG(for: canvasSize),
                     preview: exportThumbnail
                 )
             }
@@ -85,6 +85,10 @@ struct EmojiArtDocumentView: View {
                         .stroke(Color.blue, lineWidth: 1)
                         .background(Color.blue.opacity(0.1))
                 }
+            }
+            .onAppear { canvasSize = geometry.size }
+            .onChange(of: geometry.size) { _, newSize in
+                canvasSize = newSize
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -339,6 +343,41 @@ struct EmojiArtDocumentView: View {
             x: Int((location.x - center.x - pan.width) / zoom),
             y: Int(-(location.y - center.y - pan.height) / zoom)
         )
+    }
+}
+
+extension EmojiArtDocumentView {
+    fileprivate func point(for pos: EmojiArt.Emoji.Position, in size: CGSize) -> CGPoint {
+        let c = CGPoint(x: size.width/2, y: size.height/2)
+        return CGPoint(x: c.x + CGFloat(pos.x), y: c.y - CGFloat(pos.y))
+    }
+
+    @ViewBuilder
+    fileprivate func exportCanvas(size: CGSize) -> some View {
+        ZStack {
+            if let ui = document.background.uiImage {
+                Image(uiImage: ui)
+                    .position(CGPoint(x: size.width/2, y: size.height/2))
+            }
+            ForEach(document.emojis) { e in
+                Text(e.string)
+                    .font(e.font)
+                    .position(point(for: e.position, in: size))
+            }
+        }
+        .scaleEffect(zoom * gestureZoom)
+        .offset(pan + gesturePan)
+        .frame(width: size.width, height: size.height)
+    }
+
+    fileprivate func renderPNG(for size: CGSize, scale: CGFloat = 2) -> ExportedPNG? {
+        guard size.width > 0, size.height > 0 else { return nil }
+        let renderer = ImageRenderer(content: exportCanvas(size: size))
+        renderer.scale = scale
+        if let ui = renderer.uiImage, let data = ui.pngData() {
+            return ExportedPNG(data: data)
+        }
+        return nil
     }
 }
 
