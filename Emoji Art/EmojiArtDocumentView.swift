@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Photos
 // View
 struct EmojiArtDocumentView: View {
     @Environment(\.undoManager) var undoManager
@@ -32,6 +33,7 @@ struct EmojiArtDocumentView: View {
     @State private var marqueeRect: CGRect = .zero
     @State private var exportThumbnail: Image? = nil
     @State private var canvasSize: CGSize = .zero
+    @State private var showSavedToast = false
     
     @GestureState private var gestureZoom: CGFloat = 1
     @GestureState private var gesturePan: CGOffset = .zero
@@ -57,6 +59,14 @@ struct EmojiArtDocumentView: View {
                     item: renderPNG(for: canvasSize),
                     preview: exportThumbnail
                 )
+                SaveToPhotosButton(content: {
+                    exportCanvas(size: canvasSize)
+                }, size: canvasSize) {
+                    showSavedToast = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        showSavedToast = false
+                    }
+                }
             }
         }
         .environmentObject(paletteStore)
@@ -85,7 +95,16 @@ struct EmojiArtDocumentView: View {
                         .stroke(Color.blue, lineWidth: 1)
                         .background(Color.blue.opacity(0.1))
                 }
+                if showSavedToast {
+                    Text("Saved to Photos")
+                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(12)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, 36)
+                }
             }
+            .animation(.easeInOut(duration: 0.25), value: showSavedToast)
             .onAppear { canvasSize = geometry.size }
             .onChange(of: geometry.size) { _, newSize in
                 canvasSize = newSize
@@ -267,7 +286,7 @@ struct EmojiArtDocumentView: View {
                 marqueeRect = .zero
             }
     }
-
+    
     @ViewBuilder
     private func selectionHighlight(for emoji: Emoji) -> some View {
         if selection.contains(emoji.id) {
@@ -351,7 +370,7 @@ extension EmojiArtDocumentView {
         let c = CGPoint(x: size.width/2, y: size.height/2)
         return CGPoint(x: c.x + CGFloat(pos.x), y: c.y - CGFloat(pos.y))
     }
-
+    
     @ViewBuilder
     fileprivate func exportCanvas(size: CGSize) -> some View {
         ZStack {
@@ -369,7 +388,7 @@ extension EmojiArtDocumentView {
         .offset(pan + gesturePan)
         .frame(width: size.width, height: size.height)
     }
-
+    
     fileprivate func renderPNG(for size: CGSize, scale: CGFloat = 2) -> ExportedPNG? {
         guard size.width > 0, size.height > 0 else { return nil }
         let renderer = ImageRenderer(content: exportCanvas(size: size))
@@ -378,6 +397,31 @@ extension EmojiArtDocumentView {
             return ExportedPNG(data: data)
         }
         return nil
+    }
+}
+
+private extension EmojiArtDocumentView {
+    enum PhotoSaveError: Error {
+        case noImage
+        case denied
+        case failed(underlying: Error?)
+    }
+    
+    func saveUIImageToPhotos(_ image: UIImage, completion: @escaping (Result<Void, PhotoSaveError>) -> Void) {
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+            guard status == .authorized || status == .limited else {
+                DispatchQueue.main.async { completion(.failure(.denied)) }
+                return
+            }
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            }) { success, error in
+                DispatchQueue.main.async {
+                    success ? completion(.success(()))
+                            : completion(.failure(.failed(underlying: error)))
+                }
+            }
+        }
     }
 }
 
