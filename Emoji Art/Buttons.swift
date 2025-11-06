@@ -244,15 +244,24 @@ struct SaveToPhotosButton<Content: View>: View {
         .buttonStyle(.borderless)
         .help("Save to Fotos")
     }
-    
+
     private func saveToPhotos() {
-        let renderer = ImageRenderer(content: content())
+        let view = content().background(.clear)
+        let renderer = ImageRenderer(content: view)
         renderer.scale = UIScreen.main.scale
-        guard let uiImage = renderer.uiImage else { return }
+        guard
+            let uiImage = renderer.uiImage,
+            let pngData = uiImage.pngData()
+        else { return }
+
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else { return }
             PHPhotoLibrary.shared().performChanges({
-                PHAssetChangeRequest.creationRequestForAsset(from: uiImage)
+                let req = PHAssetCreationRequest.forAsset()
+                let opts = PHAssetResourceCreationOptions()
+                opts.uniformTypeIdentifier = UTType.png.identifier
+                opts.originalFilename = "EmojiArt-\(Int(Date().timeIntervalSince1970)).png"
+                req.addResource(with: .photo, data: pngData, options: opts)
             }) { success, _ in
                 if success {
                     DispatchQueue.main.async { onSaved?() }
