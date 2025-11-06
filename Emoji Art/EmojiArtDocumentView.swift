@@ -365,14 +365,14 @@ struct EmojiArtDocumentView: View {
     }
 }
 
-extension EmojiArtDocumentView {
-    fileprivate func point(for pos: EmojiArt.Emoji.Position, in size: CGSize) -> CGPoint {
+private extension EmojiArtDocumentView {
+    func point(for pos: EmojiArt.Emoji.Position, in size: CGSize) -> CGPoint {
         let c = CGPoint(x: size.width/2, y: size.height/2)
         return CGPoint(x: c.x + CGFloat(pos.x), y: c.y - CGFloat(pos.y))
     }
     
     @ViewBuilder
-    fileprivate func exportCanvas(size: CGSize) -> some View {
+    func exportCanvas(size: CGSize) -> some View {
         ZStack {
             if let ui = document.background.uiImage {
                 Image(uiImage: ui)
@@ -389,7 +389,7 @@ extension EmojiArtDocumentView {
         .frame(width: size.width, height: size.height)
     }
     
-    fileprivate func renderPNG(for size: CGSize, scale: CGFloat = 2) -> ExportedPNG? {
+    func renderPNG(for size: CGSize, scale: CGFloat = 2) -> ExportedPNG? {
         guard size.width > 0, size.height > 0 else { return nil }
         let renderer = ImageRenderer(content: exportCanvas(size: size))
         renderer.scale = scale
