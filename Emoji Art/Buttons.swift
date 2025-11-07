@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Photos
 import PhotosUI
 
 struct AnimatedActionButton: View {
@@ -103,10 +104,10 @@ struct DeleteButton: View {
 struct ChooseBackgroundButton: View {
     @Environment(\.undoManager) private var undoManager
     let document: EmojiArtDocument
-
+    
     @State private var pickerItem: PhotosPickerItem?
     @State private var showNoImageAlert = false
-
+    
     var body: some View {
         PhotosPicker(
             selection: $pickerItem,
@@ -184,7 +185,7 @@ struct BringToFrontButton: View {
     @Environment(\.undoManager) private var undoManager
     let document: EmojiArtDocument
     @Binding var selection: Set<EmojiArt.Emoji.ID>
-
+    
     var body: some View {
         Button {
             document.bringToFront(selection, undoWith: undoManager)
@@ -200,7 +201,7 @@ struct SendToBackButton: View {
     @Environment(\.undoManager) private var undoManager
     let document: EmojiArtDocument
     @Binding var selection: Set<EmojiArt.Emoji.ID>
-
+    
     var body: some View {
         Button {
             document.sendToBack(selection, undoWith: undoManager)
@@ -209,5 +210,63 @@ struct SendToBackButton: View {
         }
         .disabled(selection.isEmpty)
         .help("Send selected to back")
+    }
+}
+
+struct ShareExportButton: View {
+    let item: ExportedPNG?
+    let preview: Image?
+    
+    var body: some View {
+        ShareLink(
+            item: item ?? ExportedPNG(data: Data()),
+            preview: SharePreview("Emoji Art", image: preview ?? Image(systemName: "photo"))
+        ) {
+            Label("Export", systemImage: "square.and.arrow.up")
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+    }
+}
+
+struct SaveToPhotosButton<Content: View>: View {
+    let content: () -> Content
+    let size: CGSize
+    var onSaved: (() -> Void)? = nil
+    
+    var body: some View {
+        Button {
+            saveToPhotos()
+        } label: {
+            Label("Save", systemImage: "square.and.arrow.down.on.square")
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+        .help("Save to Fotos")
+    }
+
+    private func saveToPhotos() {
+        let view = content().background(.clear)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = UIScreen.main.scale
+        guard
+            let uiImage = renderer.uiImage,
+            let pngData = uiImage.pngData()
+        else { return }
+
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+            guard status == .authorized || status == .limited else { return }
+            PHPhotoLibrary.shared().performChanges({
+                let req = PHAssetCreationRequest.forAsset()
+                let opts = PHAssetResourceCreationOptions()
+                opts.uniformTypeIdentifier = UTType.png.identifier
+                opts.originalFilename = "EmojiArt-\(Int(Date().timeIntervalSince1970)).png"
+                req.addResource(with: .photo, data: pngData, options: opts)
+            }) { success, _ in
+                if success {
+                    DispatchQueue.main.async { onSaved?() }
+                }
+            }
+        }
     }
 }
